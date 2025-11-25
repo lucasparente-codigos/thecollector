@@ -12,6 +12,11 @@ class Controller
      */
     protected function view($viewPath, $data = [])
     {
+        // Add CSRF token to all views that might contain forms
+        if (!isset($data['csrf_token'])) {
+            $data['csrf_token'] = $this->generateCsrfToken();
+        }
+
         extract($data);
         
         $viewFile = __DIR__ . '/../Modules/' . $viewPath . '.php';
@@ -46,7 +51,36 @@ class Controller
     }
 
     /**
-     * Get POST data safely
+     * Generate and store a CSRF token
+     *
+     * @return string
+     */
+    protected function generateCsrfToken()
+    {
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+
+    /**
+     * Validate the CSRF token from POST data
+     *
+     * @return void
+     */
+    protected function validateCsrfToken()
+    {
+        if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+            // Token mismatch, handle error (e.g., show error page)
+            http_response_code(403);
+            die('CSRF token validation failed.');
+        }
+        // Invalidate token after use
+        unset($_SESSION['csrf_token']);
+    }
+
+    /**
+     * Get POST data safely and sanitize it.
      * 
      * @param string $key
      * @param mixed $default
@@ -54,11 +88,15 @@ class Controller
      */
     protected function post($key, $default = null)
     {
-        return $_POST[$key] ?? $default;
+        $value = $_POST[$key] ?? $default;
+        if (is_string($value)) {
+            return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+        }
+        return $value;
     }
 
     /**
-     * Get GET data safely
+     * Get GET data safely and sanitize it.
      * 
      * @param string $key
      * @param mixed $default
@@ -66,6 +104,10 @@ class Controller
      */
     protected function get($key, $default = null)
     {
-        return $_GET[$key] ?? $default;
+        $value = $_GET[$key] ?? $default;
+        if (is_string($value)) {
+            return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+        }
+        return $value;
     }
 }

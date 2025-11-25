@@ -29,12 +29,12 @@ use App\Modules\Auth\Controllers\AuthController;
 use App\Modules\Music\Controllers\MusicController;
 
 // Define base path for assets and URLs
-$scriptName = dirname($_SERVER['SCRIPT_NAME']);
-$scriptName = str_replace('\\', '/', $scriptName);
-if ($scriptName === '/') {
-    $scriptName = '';
+$basePath = dirname($_SERVER['SCRIPT_NAME']);
+$basePath = str_replace('\\', '/', $basePath);
+if ($basePath === '/') {
+    $basePath = '';
 }
-define('BASE_PATH', $scriptName);
+define('BASE_PATH', $basePath);
 
 // Initialize Router
 $router = new Router();
@@ -51,19 +51,23 @@ $router->add('GET', '/logout', [AuthController::class, 'logout']);
 $router->add('GET', '/dashboard', [MusicController::class, 'index']);
 $router->add('GET', '/music/add', [MusicController::class, 'create']);
 $router->add('POST', '/music/store', [MusicController::class, 'store']);
-$router->add('GET', '/music/edit', [MusicController::class, 'edit']);
-$router->add('POST', '/music/update', [MusicController::class, 'update']);
-$router->add('POST', '/music/delete', [MusicController::class, 'delete']);
+$router->add('GET', '/music/edit/{id}', [MusicController::class, 'edit']);
+$router->add('POST', '/music/update/{id}', [MusicController::class, 'update']);
+$router->add('POST', '/music/delete/{id}', [MusicController::class, 'delete']);
 
 // Dispatch request
 $uri = $_SERVER['REQUEST_URI'];
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Extract path from URI
-$path = str_replace(BASE_PATH, '', $uri);
-if (strpos($path, '/') !== 0) {
+// Extract path from URI, removing the base path
+$path = parse_url($uri, PHP_URL_PATH);
+if (BASE_PATH && strpos($path, BASE_PATH) === 0) {
+    $path = substr($path, strlen(BASE_PATH));
+}
+
+// Ensure path starts with a /
+if (!$path || $path[0] !== '/') {
     $path = '/' . $path;
 }
-$path = parse_url($path, PHP_URL_PATH);
 
 $router->dispatch($method, $path);

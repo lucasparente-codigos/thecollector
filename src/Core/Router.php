@@ -18,22 +18,32 @@ class Router
     public function dispatch($method, $uri)
     {
         $method = strtoupper($method);
-        
+        $uri = parse_url($uri, PHP_URL_PATH);
+
         foreach ($this->routes as $route) {
-            if ($route['method'] === $method && $route['path'] === $uri) {
+            if ($route['method'] !== $method) {
+                continue;
+            }
+
+            $routePath = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[^/]+)', $route['path']);
+            $pattern = "@^" . $routePath . "$@D";
+
+            if (preg_match($pattern, $uri, $matches)) {
+                $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+
                 $handler = $route['handler'];
                 
                 if (is_array($handler)) {
                     [$controllerName, $action] = $handler;
                     $controller = new $controllerName();
-                    return $controller->$action();
+                    
+                    return call_user_func_array([$controller, $action], $params);
                 }
                 
                 return;
             }
         }
 
-        // 404 Not Found
         $this->notFound();
     }
 

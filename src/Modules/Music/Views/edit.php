@@ -24,7 +24,8 @@
             <div class="alert error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
 
-        <form method="POST" action="<?= BASE_PATH ?>/music/update?id=<?= $music['id'] ?>" class="music-form">
+        <form method="POST" action="<?= BASE_PATH ?>/music/update/<?= $music['id'] ?>" class="music-form">
+            <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
             <div class="form-group">
                 <label for="title">Title *</label>
                 <input 

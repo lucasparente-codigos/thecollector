@@ -3,79 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - The Collector</title>
+    <title>Login - The Collector</title>
     <link rel="stylesheet" href="<?= BASE_PATH ?>/assets/style.css">
 </head>
 <body>
-    <nav>
-        <div class="nav-container">
-            <span class="brand">The Collector</span>
-            <div class="user-info">
-                <span>Welcome, <?= htmlspecialchars($_SESSION['username']) ?></span>
-                <a href="<?= BASE_PATH ?>/logout" class="btn-logout">Logout</a>
+    <div class="auth-container">
+        <h1>The Collector</h1>
+        <p style="text-align: center; color: #64748b; margin-bottom: 2rem;">Login to your account</p>
+        
+        <?php if (isset($error)): ?>
+            <div class="alert error"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+        
+        <form method="POST" action="<?= BASE_PATH ?>/login">
+            <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    value="<?= htmlspecialchars($username ?? '') ?>"
+                    required 
+                    autofocus
+                >
             </div>
-        </div>
-    </nav>
-
-    <main class="container">
-        <div class="header-actions">
-            <h1>My Collection</h1>
-            <a href="<?= BASE_PATH ?>/music/add" class="btn btn-primary">Add Music</a>
-        </div>
-
-        <form method="GET" action="<?= BASE_PATH ?>/dashboard" class="search-form">
-            <input 
-                type="text" 
-                name="search" 
-                placeholder="Search by title, artist, or album..."
-                value="<?= htmlspecialchars($search ?? '') ?>"
-            >
-            <button type="submit" class="btn">Search</button>
-            <?php if ($search): ?>
-                <a href="<?= BASE_PATH ?>/dashboard" class="btn btn-secondary">Clear</a>
-            <?php endif; ?>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
         </form>
-
-        <div class="music-grid">
-            <?php if (empty($musicList)): ?>
-                <div class="no-data">
-                    <p>No music found in your collection.</p>
-                    <?php if ($search): ?>
-                        <p>Try a different search term or <a href="<?= BASE_PATH ?>/dashboard">view all</a>.</p>
-                    <?php else: ?>
-                        <p><a href="<?= BASE_PATH ?>/music/add">Add your first entry</a>!</p>
-                    <?php endif; ?>
-                </div>
-            <?php else: ?>
-                <?php foreach ($musicList as $music): ?>
-                    <div class="music-card">
-                        <h3><?= htmlspecialchars($music['title']) ?></h3>
-                        <p class="artist"><?= htmlspecialchars($music['artist']) ?></p>
-                        <p class="details">
-                            <?= htmlspecialchars($music['album'] ?: '-') ?> •
-                            <?= htmlspecialchars($music['year'] ?: '-') ?> •
-                            <?= htmlspecialchars($music['genre'] ?: '-') ?>
-                        </p>
-                        <?php if ($music['rating']): ?>
-                            <div class="rating">
-                                Rating: <?= str_repeat('★', $music['rating']) ?>
-                            </div>
-                        <?php endif; ?>
-                        <?php if ($music['notes']): ?>
-                            <p class="notes"><?= htmlspecialchars($music['notes']) ?></p>
-                        <?php endif; ?>
-                        <div class="actions">
-                            <a href="<?= BASE_PATH ?>/music/edit?id=<?= $music['id'] ?>" class="btn btn-sm">Edit</a>
-                            <form method="POST" action="<?= BASE_PATH ?>/music/delete?id=<?= $music['id'] ?>" style="display: inline;">
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirmDelete()">Delete</button>
-                            </form>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
-    </main>
-    
-    <script src="<?= BASE_PATH ?>/assets/script.js"></script>
+        
+        <p style="text-align: center; margin-top: 1rem;">
+            Don't have an account? 
+            <a href="<?= BASE_PATH ?>/register">Register here</a>
+        </p>
+    </div>
 </body>
 </html>

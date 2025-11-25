@@ -25,6 +25,7 @@
         <?php endif; ?>
 
         <form method="POST" action="<?= BASE_PATH ?>/music/store" class="music-form">
+            <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
             <div class="form-group">
                 <label for="title">Title *</label>
                 <input 

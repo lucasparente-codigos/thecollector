@@ -20,6 +20,7 @@
         <?php endif; ?>
         
         <form method="POST" action="<?= BASE_PATH ?>/register">
+            <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input 

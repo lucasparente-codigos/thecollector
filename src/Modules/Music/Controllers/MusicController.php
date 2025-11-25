@@ -42,6 +42,8 @@ class MusicController extends Controller
      */
     public function store()
     {
+        $this->validateCsrfToken();
+
         $data = [
             'title' => trim($this->post('title', '')),
             'artist' => trim($this->post('artist', '')),
@@ -75,9 +77,8 @@ class MusicController extends Controller
     /**
      * Show edit music form
      */
-    public function edit()
+    public function edit($id)
     {
-        $id = $this->get('id');
         $music = $this->musicRepo->getById($id, $_SESSION['user_id']);
 
         if (!$music) {
@@ -90,10 +91,10 @@ class MusicController extends Controller
     /**
      * Update music entry
      */
-    public function update()
+    public function update($id)
     {
-        $id = $this->get('id');
-        
+        $this->validateCsrfToken();
+
         $data = [
             'title' => trim($this->post('title', '')),
             'artist' => trim($this->post('artist', '')),
@@ -129,10 +130,10 @@ class MusicController extends Controller
     /**
      * Delete music entry
      */
-    public function delete()
+    public function delete($id)
     {
-        $id = $this->get('id');
-        
+        $this->validateCsrfToken();
+
         if ($id) {
             $this->musicRepo->delete($id, $_SESSION['user_id']);
         }

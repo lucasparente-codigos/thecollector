@@ -65,8 +65,9 @@
                             <p class="notes"><?= htmlspecialchars($music['notes']) ?></p>
                         <?php endif; ?>
                         <div class="actions">
-                            <a href="<?= BASE_PATH ?>/music/edit?id=<?= $music['id'] ?>" class="btn btn-sm">Edit</a>
-                            <form method="POST" action="<?= BASE_PATH ?>/music/delete?id=<?= $music['id'] ?>" style="display: inline;">
+                            <a href="<?= BASE_PATH ?>/music/edit/<?= $music['id'] ?>" class="btn btn-sm">Edit</a>
+                            <form method="POST" action="<?= BASE_PATH ?>/music/delete/<?= $music['id'] ?>" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirmDelete()">Delete</button>
                             </form>
                         </div>

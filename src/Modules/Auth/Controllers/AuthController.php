@@ -32,6 +32,8 @@ class AuthController extends Controller
      */
     public function authenticate()
     {
+        $this->validateCsrfToken();
+
         $username = trim($this->post('username', ''));
         $password = $this->post('password', '');
 
@@ -78,6 +80,8 @@ class AuthController extends Controller
      */
     public function store()
     {
+        $this->validateCsrfToken();
+
         $username = trim($this->post('username', ''));
         $password = $this->post('password', '');
 
