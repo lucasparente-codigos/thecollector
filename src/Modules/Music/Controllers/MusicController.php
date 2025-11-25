@@ -11,51 +11,73 @@ class MusicController extends Controller
 
     public function __construct()
     {
-        if (!isset($_SESSION['user_id'])) {
-            $this->redirect('/login');
-        }
+        $this->requireAuth();
         $this->musicRepo = new MusicRepository();
     }
 
+    /**
+     * Show dashboard with music collection
+     */
     public function index()
     {
-        $search = $_GET['search'] ?? null;
+        $search = $this->get('search');
         $musicList = $this->musicRepo->getAll($_SESSION['user_id'], $search);
-        $this->view('Music/Views/dashboard', ['musicList' => $musicList, 'search' => $search]);
+        
+        $this->view('Music/Views/dashboard', [
+            'musicList' => $musicList,
+            'search' => $search
+        ]);
     }
 
+    /**
+     * Show add music form
+     */
     public function create()
     {
         $this->view('Music/Views/add');
     }
 
+    /**
+     * Store new music
+     */
     public function store()
     {
         $data = [
-            'title' => trim($_POST['title']),
-            'artist' => trim($_POST['artist']),
-            'album' => trim($_POST['album']),
-            'genre' => trim($_POST['genre']),
-            'year' => (int) $_POST['year'],
-            'rating' => (int) $_POST['rating'],
-            'notes' => trim($_POST['notes'])
+            'title' => trim($this->post('title', '')),
+            'artist' => trim($this->post('artist', '')),
+            'album' => trim($this->post('album', '')),
+            'genre' => trim($this->post('genre', '')),
+            'year' => (int) $this->post('year', 0),
+            'rating' => $this->validateRating($this->post('rating', 0)),
+            'notes' => trim($this->post('notes', ''))
         ];
 
+        // Validate required fields
         if (empty($data['title']) || empty($data['artist'])) {
-            $this->view('Music/Views/add', ['error' => 'Title and Artist are required.']);
+            $this->view('Music/Views/add', [
+                'error' => 'Title and Artist are required.',
+                'music' => $data
+            ]);
             return;
         }
 
+        // Create music entry
         if ($this->musicRepo->create($_SESSION['user_id'], $data)) {
             $this->redirect('/dashboard');
         } else {
-            $this->view('Music/Views/add', ['error' => 'Failed to add music.']);
+            $this->view('Music/Views/add', [
+                'error' => 'Failed to add music.',
+                'music' => $data
+            ]);
         }
     }
 
+    /**
+     * Show edit music form
+     */
     public function edit()
     {
-        $id = $_GET['id'] ?? null;
+        $id = $this->get('id');
         $music = $this->musicRepo->getById($id, $_SESSION['user_id']);
 
         if (!$music) {
@@ -65,38 +87,73 @@ class MusicController extends Controller
         $this->view('Music/Views/edit', ['music' => $music]);
     }
 
+    /**
+     * Update music entry
+     */
     public function update()
     {
-        $id = $_GET['id'] ?? null;
+        $id = $this->get('id');
+        
         $data = [
-            'title' => trim($_POST['title']),
-            'artist' => trim($_POST['artist']),
-            'album' => trim($_POST['album']),
-            'genre' => trim($_POST['genre']),
-            'year' => (int) $_POST['year'],
-            'rating' => (int) $_POST['rating'],
-            'notes' => trim($_POST['notes'])
+            'title' => trim($this->post('title', '')),
+            'artist' => trim($this->post('artist', '')),
+            'album' => trim($this->post('album', '')),
+            'genre' => trim($this->post('genre', '')),
+            'year' => (int) $this->post('year', 0),
+            'rating' => $this->validateRating($this->post('rating', 0)),
+            'notes' => trim($this->post('notes', ''))
         ];
 
+        // Validate required fields
         if (empty($data['title']) || empty($data['artist'])) {
-            // In a real app we'd pass data back to repopulate form
-            $this->redirect("/music/edit?id=$id&error=required");
+            $music = $this->musicRepo->getById($id, $_SESSION['user_id']);
+            $this->view('Music/Views/edit', [
+                'error' => 'Title and Artist are required.',
+                'music' => array_merge($music, $data)
+            ]);
             return;
         }
 
+        // Update music entry
         if ($this->musicRepo->update($id, $_SESSION['user_id'], $data)) {
             $this->redirect('/dashboard');
         } else {
-            $this->redirect("/music/edit?id=$id&error=failed");
+            $music = $this->musicRepo->getById($id, $_SESSION['user_id']);
+            $this->view('Music/Views/edit', [
+                'error' => 'Failed to update music.',
+                'music' => array_merge($music, $data)
+            ]);
         }
     }
 
+    /**
+     * Delete music entry
+     */
     public function delete()
     {
-        $id = $_GET['id'] ?? null;
+        $id = $this->get('id');
+        
         if ($id) {
             $this->musicRepo->delete($id, $_SESSION['user_id']);
         }
+        
         $this->redirect('/dashboard');
+    }
+
+    /**
+     * Validate rating value
+     * 
+     * @param mixed $rating
+     * @return int|null
+     */
+    private function validateRating($rating)
+    {
+        $rating = (int) $rating;
+        
+        if ($rating < 1 || $rating > 5) {
+            return null;
+        }
+        
+        return $rating;
     }
 }

@@ -1,14 +1,11 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - The Collector</title>
     <link rel="stylesheet" href="<?= BASE_PATH ?>/assets/style.css">
 </head>
-
 <body>
     <nav>
         <div class="nav-container">
@@ -27,8 +24,12 @@
         </div>
 
         <form method="GET" action="<?= BASE_PATH ?>/dashboard" class="search-form">
-            <input type="text" name="search" placeholder="Search by title, artist, or album..."
-                value="<?= htmlspecialchars($search ?? '') ?>">
+            <input 
+                type="text" 
+                name="search" 
+                placeholder="Search by title, artist, or album..."
+                value="<?= htmlspecialchars($search ?? '') ?>"
+            >
             <button type="submit" class="btn">Search</button>
             <?php if ($search): ?>
                 <a href="<?= BASE_PATH ?>/dashboard" class="btn btn-secondary">Clear</a>
@@ -37,34 +38,44 @@
 
         <div class="music-grid">
             <?php if (empty($musicList)): ?>
-                <p class="no-data">No music found in your collection.</p>
+                <div class="no-data">
+                    <p>No music found in your collection.</p>
+                    <?php if ($search): ?>
+                        <p>Try a different search term or <a href="<?= BASE_PATH ?>/dashboard">view all</a>.</p>
+                    <?php else: ?>
+                        <p><a href="<?= BASE_PATH ?>/music/add">Add your first entry</a>!</p>
+                    <?php endif; ?>
+                </div>
             <?php else: ?>
                 <?php foreach ($musicList as $music): ?>
                     <div class="music-card">
                         <h3><?= htmlspecialchars($music['title']) ?></h3>
                         <p class="artist"><?= htmlspecialchars($music['artist']) ?></p>
                         <p class="details">
-                            <?= htmlspecialchars($music['album'] ?? '-') ?> •
-                            <?= htmlspecialchars($music['year'] ?? '-') ?> •
-                            <?= htmlspecialchars($music['genre'] ?? '-') ?>
+                            <?= htmlspecialchars($music['album'] ?: '-') ?> •
+                            <?= htmlspecialchars($music['year'] ?: '-') ?> •
+                            <?= htmlspecialchars($music['genre'] ?: '-') ?>
                         </p>
-                        <div class="rating">
-                            Rating: <?= $music['rating'] ? str_repeat('★', $music['rating']) : 'N/A' ?>
-                        </div>
+                        <?php if ($music['rating']): ?>
+                            <div class="rating">
+                                Rating: <?= str_repeat('★', $music['rating']) ?>
+                            </div>
+                        <?php endif; ?>
                         <?php if ($music['notes']): ?>
                             <p class="notes"><?= htmlspecialchars($music['notes']) ?></p>
                         <?php endif; ?>
                         <div class="actions">
                             <a href="<?= BASE_PATH ?>/music/edit?id=<?= $music['id'] ?>" class="btn btn-sm">Edit</a>
-                            <a href="<?= BASE_PATH ?>/music/delete?id=<?= $music['id'] ?>" class="btn btn-sm btn-danger"
-                                onclick="return confirmDelete()">Delete</a>
+                            <form method="POST" action="<?= BASE_PATH ?>/music/delete?id=<?= $music['id'] ?>" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirmDelete()">Delete</button>
+                            </form>
                         </div>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
     </main>
+    
     <script src="<?= BASE_PATH ?>/assets/script.js"></script>
 </body>
-
 </html>

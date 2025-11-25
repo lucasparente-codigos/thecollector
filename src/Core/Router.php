@@ -9,7 +9,7 @@ class Router
     public function add($method, $path, $handler)
     {
         $this->routes[] = [
-            'method' => $method,
+            'method' => strtoupper($method),
             'path' => $path,
             'handler' => $handler
         ];
@@ -17,25 +17,42 @@ class Router
 
     public function dispatch($method, $uri)
     {
-        // Remove query string
-        $uri = parse_url($uri, PHP_URL_PATH);
-        // Remove base path if needed (assuming hosted at /thecollector/public or similar, but let's handle relative to root for now)
-        // For simplicity in this environment, we'll assume relative paths or handle prefix removal in index.php
-
+        $method = strtoupper($method);
+        
         foreach ($this->routes as $route) {
             if ($route['method'] === $method && $route['path'] === $uri) {
                 $handler = $route['handler'];
+                
                 if (is_array($handler)) {
-                    $controllerName = $handler[0];
-                    $action = $handler[1];
+                    [$controllerName, $action] = $handler;
                     $controller = new $controllerName();
                     return $controller->$action();
                 }
+                
+                return;
             }
         }
 
-        // 404
+        // 404 Not Found
+        $this->notFound();
+    }
+
+    private function notFound()
+    {
         http_response_code(404);
-        echo "404 Not Found";
+        echo "<!DOCTYPE html>
+<html>
+<head>
+    <title>404 - Not Found</title>
+    <link rel=\"stylesheet\" href=\"" . BASE_PATH . "/assets/style.css\">
+</head>
+<body>
+    <div class=\"auth-container\">
+        <h1>404 - Page Not Found</h1>
+        <p>The page you're looking for doesn't exist.</p>
+        <p><a href=\"" . BASE_PATH . "/dashboard\">Go to Dashboard</a></p>
+    </div>
+</body>
+</html>";
     }
 }
